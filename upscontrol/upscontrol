@@ -1,0 +1,48 @@
+#!/usr/bin/python3
+
+import syslog
+import sys
+import argparse
+from UpsControl import UpsControl
+import os
+
+_DEFAULT_PID_FILE="/var/run/upscontrol/upscontrol.pid"
+
+def main():
+    parser = argparse.ArgumentParser(description='UPS control server.')
+
+    parser.add_argument('-d', '--daemon', action='store_true', help='Run in daemon mode')
+
+    parser.add_argument('-p', '--pidfile', help='pid file name')
+
+    parser.add_argument('-P', '--priority', help='Set realtime priority', type=int, default=None)
+
+    args = parser.parse_args()
+    
+    if args.pidfile:
+        pidfile = args.pidfile
+    else:
+        pidfile = _DEFAULT_PID_FILE
+
+    if args.daemon:
+        piddir = os.path.dirname(pidfile)
+        if not os.path.exists(piddir):
+            os.makedirs(piddir)
+
+        # Save the PID of this thread
+        f=open(pidfile, "w")
+        f.write("%d" % os.getpid())
+        f.close()
+
+    # See if to change to RR priority
+    if args.priority is not None:
+        syslog.syslog("Changing priority to realtime %d" % args.priority)
+        os.system("chrt --pid %d %d" % (args.priority, os.getpid()))
+
+    control = GenTestControl()
+    control.run()
+ 
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())

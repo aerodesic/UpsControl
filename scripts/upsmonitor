@@ -1,0 +1,157 @@
+#!/usr/bin/python3
+
+from gi.repository import GObject as gobject
+import time
+import dbus
+from dbusobject import DBusObject
+import sys
+import json
+import argparse
+
+_BUSNAME = "com.cpac.rhpro.control"
+_SERVICENAME = "/com/cpac/rhpro/control"
+
+class RhproMonitor:
+    def __init__(self, args):
+        self._capture_pid = args.pid or args.all
+        self._capture_temps = args.temps or args.all
+        self._capture_raw = args.raw_temps or args.all
+        self._capture_results = args.results or args.all
+        self._capture_errors = args.errors or args.all
+        self._capture_state = args.state or args.all
+        self._errors_seen = {}
+
+    def indicate_temps(self, temps):
+        print("Temps: used: %4.1f  t1: %4.1f  t2: %4.1f  blower: %4.1f  return_air: %4.1f  cj: %4.1f" % (temps[0], temps[1], temps[2], temps[3], temps[4], temps[5]))
+
+    def indicate_raw_analog_data(self, data):
+        data = json.loads(data)
+        print("Raw:", end='')
+        for v in sorted(data):
+            print(" %s: %f" % (v, data[v]),end='')
+        print()
+
+#        print("Raw: T1 %f T2 %f BLOWER %f SOURCE %f CJ %f" % (data['T1'], data['T2'], data['BLOWER'], data['RETURN_AIR'], data['CJ']))
+
+
+    def indicate_errors_and_warnings(self, errors):
+        errors = json.loads(errors)
+        if self._errors_seen != errors:
+            # Some changes
+            # Print cleared errors
+            for e in self._errors_seen:
+                if e not in errors:
+                    print("Cleared %s: %s" % (e, json.dumps(self._errors_seen[e])))
+            for e in errors:
+                if e not in self._errors_seen:
+                    print("Error %s: %s" % (e, json.dumps(errors[e])))
+
+            self._errors_seen = errors
+
+    def indicate_cycle_state(self, state, time):
+        print("Cycle: %s time %.1f" % (state, time))
+
+    def indicate_results(self, results):
+        print ("Results: %s" % results)
+
+    def indicate_updated_results(self, results):
+        print ("Updated Results: %s" % results)
+
+    def indicate_dialog_start(self, msgid, payload):
+        print("Dialog Start: '%s' %s" % (msgid, payload))
+
+    def indicate_dialog_finish(self, msgid, button):
+        print("Dialog Finish: '%s' %s" % (msgid, button))
+
+    def indicate_dialog_update(self, msgid, data):
+        print("Dialog Update: '%s' %s of %s" % (msgid, data))
+
+    def run(self):
+        bus = dbus.SystemBus()
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+        running = True
+        while running:
+            try:
+                object = bus.get_object(_BUSNAME, _SERVICENAME)
+        
+                object.connect_to_signal("IndicateDialogStart", self.indicate_dialog_start, dbus_interface=_BUSNAME)
+                object.connect_to_signal("IndicateDialogFinish", self.indicate_dialog_finish, dbus_interface=_BUSNAME)
+                object.connect_to_signal("IndicateDialogUpdate", self.indicate_dialog_update, dbus_interface=_BUSNAME)
+
+                if self._capture_temps:
+                    object.connect_to_signal("IndicateTemperatures", self.indicate_temps, dbus_interface=_BUSNAME)
+
+                if self._capture_errors:
+                    object.connect_to_signal("IndicateErrorsAndWarnings", self.indicate_errors_and_warnings, dbus_interface=_BUSNAME)
+
+                if self._capture_state:
+                    object.connect_to_signal("IndicateCycleState", self.indicate_cycle_state, dbus_interface=_BUSNAME)
+ 
+                if self._capture_results:
+                    object.connect_to_signal("IndicateResults", self.indicate_results, dbus_interface=_BUSNAME)
+
+                if self._capture_results:
+                    object.connect_to_signal("IndicateUpdatedResults", self.indicate_updated_results, dbus_interface=_BUSNAME)
+
+                if self._capture_raw:
+                    object.connect_to_signal("IndicateRawAnalogData", self.indicate_raw_analog_data, dbus_interface=_BUSNAME)
+                    object.SetRawAnalogOutput(True)
+
+                # object.Update()
+
+                loop = gobject.MainLoop()
+                loop.run()
+
+            except KeyboardInterrupt:
+                running = False
+
+            except Exception as e:
+                print("rhpromonitor restarting: %s" % e)
+                time.sleep(10)
+
+        # Turn off raw analog if it was requested
+        if self._capture_raw:
+            object.SetRawAnalogOutput(False)
+
+def main():
+    parser = argparse.ArgumentParser(description='RH-Pro monitor')
+
+    parser.add_argument('-p', '--pid', 
+                        action='store_true',
+                        help='Enable PID coefficient capture')
+
+    parser.add_argument('-t', '--temps', 
+                        action='store_true',
+                        help='Enable Temperature capture')
+
+    parser.add_argument('-r', '--raw_temps', 
+                        action='store_true',
+                        help='Enable Raw Temperature capture')
+
+    parser.add_argument('-e', '--errors', 
+                        action='store_true',
+                        help='Enable Error capture')
+
+    parser.add_argument('-R', '--results', 
+                        action='store_true',
+                        help='Enable Capture of results data')
+
+    parser.add_argument('-s', '--state', 
+                        action='store_true',
+                        help='Enable State capture')
+
+    parser.add_argument('-a', '--all',
+                        action='store_true',
+                        help='Capture all information')
+
+    args = parser.parse_args()
+    
+    application = RhproMonitor(args)
+
+    application.run()
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
