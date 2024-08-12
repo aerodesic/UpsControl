@@ -39,7 +39,7 @@ def main():
         syslog.syslog("Changing priority to realtime %d" % args.priority)
         os.system("chrt --pid %d %d" % (args.priority, os.getpid()))
 
-    control = GenTestControl()
+    control = UpsControl()
     control.run()
  
     return 0
