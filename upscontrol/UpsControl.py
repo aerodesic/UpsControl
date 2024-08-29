@@ -5,13 +5,7 @@
 #
 
 from upsdisplay.vartab import *
-
-def syslog_json(name, value):
-    prefix = "%s:  " % name
-
-    for line in json.dumps(value, indent=3, sort_keys=True).split('\n'):
-        syslog.syslog("%s%s" % (prefix, line))
-        prefix = ""
+import json
 
 
 from gi.repository import GObject as gobject
@@ -26,10 +20,16 @@ import time
 from queue import Queue
 import syslog
 import logging
-import json
 import os
 import tempfile
 from timeit import default_timer as elapsed_time
+
+def syslog_json(name, value):
+    prefix = "%s:  " % name
+
+    for line in json.dumps(value, indent=3, sort_keys=True).split('\n'):
+        syslog.syslog("%s%s" % (prefix, line))
+        prefix = ""
 
 #####################################
 # Import a 'sync' function
