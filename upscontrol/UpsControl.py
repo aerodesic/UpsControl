@@ -4,6 +4,8 @@
 # Main dbus based generator test control
 #
 
+from upsdisplay.vartab import *
+
 def syslog_json(name, value):
     prefix = "%s:  " % name
 
