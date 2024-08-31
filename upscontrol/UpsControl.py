@@ -107,8 +107,9 @@ class UpsControlException(dbus.DBusException):
 
 class UpsControl(dbus.service.Object):
     def __init__(self):
-        self._dbus_lock = Lock()
-
+        self.__dbus_lock = Lock()
+        self.__config_lock = Lock()
+        self.__config = VarTab()
 
     def run(self):
 
@@ -142,20 +143,20 @@ class UpsControl(dbus.service.Object):
         syslog.syslog ("UpsControl Service stopped")
 
 
-    @dbus.service.signal(_BUSNAME, signature='ad')
+    # Data as json string
+    @dbus.service.signal(_BUSNAME, signature='s')
     def IndicateData(self, data):
         pass
 
+    # Send value as dbus 'value'
     @dbus.service.method(_BUSNAME, in_signature='sv', out_signature='')
     def SetValue(self, name, value):
-        pass
+        with self.__config_lock:
+            self.__config.SetValue(name, value)
 
+    # Receive data as dbus 'value'
     @dbus.service.method(_BUSNAME, in_signature='s', out_signature='v')
     def GetValue(self, name):
-        return None
-
-    # Reset
-    @dbus.service.method(_BUSNAME, in_signature='', out_signature='')
-    def Reset(self):
-        pass
+        with self.__config_lock:
+            return self.__config.GetValue(name)
 

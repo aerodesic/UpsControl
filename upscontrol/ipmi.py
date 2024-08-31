@@ -5,7 +5,15 @@ class IPMI_Exception(Exception):
     pass
 
 class IPMI_Control():
-    def __init__(self, interface_type="rmcp", slave_address=0x81, host_target_address=0x20, keep_alive_interval=1, host_address=None, host_port=623):
+    def __init__(self,
+                 interface_type="rmcp",
+                 slave_address=0x81,
+                 host_target_address=0x20,
+                 keep_alive_interval=1,
+                 host_address=None,
+                 host_port=623,
+                 username=None,
+                 password=None):
         self.interface_type = interface_type
         self.slave_address = slave_address
         self.host_target_address = host_target_address
@@ -13,6 +21,8 @@ class IPMI_Control():
         self.host_address = host_address
         self.host_port = host_port
         self.ipmi = None
+        self.username = username
+        self.password = password
         self.sensors = {}
 
 
