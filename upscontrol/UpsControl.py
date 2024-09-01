@@ -149,10 +149,10 @@ class UpsControl(dbus.service.Object):
         pass
 
     # Send value as dbus 'value'
-    @dbus.service.method(_BUSNAME, in_signature='sv', out_signature='')
+    @dbus.service.method(_BUSNAME, in_signature='ss', out_signature='')
     def SetValue(self, name, value):
         with self.__config_lock:
-            self.__config.SetValue(name, value)
+            self.__config.SetValue(name, json.loads(value))
 
         # Debug
         self.IndicateData("info", "value of '%s' set to %s" % (name, value))
@@ -161,5 +161,5 @@ class UpsControl(dbus.service.Object):
     @dbus.service.method(_BUSNAME, in_signature='s', out_signature='v')
     def GetValue(self, name):
         with self.__config_lock:
-            return self.__config.GetValue(name)
+            return json.dumps(self.__config.GetValue(name))
 
