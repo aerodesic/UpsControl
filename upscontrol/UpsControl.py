@@ -143,6 +143,9 @@ class UpsControl(dbus.service.Object):
         syslog.syslog ("UpsControl Service stopped")
 
 
+    def SendIndicateData(self, reason, data=None):
+        self.IndicateData(reason, json.dumps(data))
+
     # Data as json string
     @dbus.service.signal(_BUSNAME, signature='ss')
     def IndicateData(self, reason, data=None):
@@ -155,7 +158,7 @@ class UpsControl(dbus.service.Object):
             self.__config.SetValue(name, json.loads(value))
 
         # Debug
-        self.IndicateData("info", "value of '%s' set to %s" % (name, value))
+        self.SendIndicateData("info", "value of '%s' set to %s" % (name, value))
 
     # Receive data as dbus 'value'
     @dbus.service.method(_BUSNAME, in_signature='s', out_signature='s')
