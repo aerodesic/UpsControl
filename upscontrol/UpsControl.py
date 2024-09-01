@@ -144,8 +144,8 @@ class UpsControl(dbus.service.Object):
 
 
     # Data as json string
-    @dbus.service.signal(_BUSNAME, signature='s')
-    def IndicateData(self, data):
+    @dbus.service.signal(_BUSNAME, signature='ss')
+    def IndicateData(self, reason, data=None):
         pass
 
     # Send value as dbus 'value'
