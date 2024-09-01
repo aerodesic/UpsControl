@@ -154,6 +154,9 @@ class UpsControl(dbus.service.Object):
         with self.__config_lock:
             self.__config.SetValue(name, value)
 
+        # Debug
+        self.IndicateData("info", "value of '%s' set to %s" % (name, value))
+
     # Receive data as dbus 'value'
     @dbus.service.method(_BUSNAME, in_signature='s', out_signature='v')
     def GetValue(self, name):
