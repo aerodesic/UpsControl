@@ -158,7 +158,7 @@ class UpsControl(dbus.service.Object):
         self.IndicateData("info", "value of '%s' set to %s" % (name, value))
 
     # Receive data as dbus 'value'
-    @dbus.service.method(_BUSNAME, in_signature='s', out_signature='v')
+    @dbus.service.method(_BUSNAME, in_signature='s', out_signature='s')
     def GetValue(self, name):
         with self.__config_lock:
             return json.dumps(self.__config.GetValue(name))
