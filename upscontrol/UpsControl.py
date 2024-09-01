@@ -113,16 +113,15 @@ class UpsControl(dbus.service.Object):
         self.__config_lock = Lock()
         self.__config = UpsControlVarTab()
 
-        # Combine the system and node default tables
-        default_config = DEFAULT_SYSTEM_CONFIG
-        default_config['nodes'] = DEFAULT_NODE_CONFIG
+        # Put in the user portion of the config
+        default_config = {['nodes': DEFAULT_NODE_CONFIG }
 
         # Read current config file if available
         self.__config.Load(init=default_config)
 
         # Overwrite defaults for all of the items in the DEFAULT_SYSTEM_CONFIG
         for item in DEFAULT_SYSTEM_CONFIG:
-            self.config.SetValue(item, DEFAULT_SYSTEM_CONFIG[item])
+            self.__config.SetValue(item, DEFAULT_SYSTEM_CONFIG[item])
 
     def run(self):
 
