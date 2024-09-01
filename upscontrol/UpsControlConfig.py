@@ -78,6 +78,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": "<bool>",                   # main is a boolean (show on main page if True)
             "username": "<str>",                    # User name credential for access
             "password": "<password>",               # Password for credential    
+            "autostart": "<bool>",                  # If to auto start when power is ready
         },
         # If displayed, use these strings to identify the value on screen
         "headers": {
@@ -92,6 +93,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": "On Main Page",
             "username": "User name",
             "password": "Password",
+            "autostart": "Auto Start",
         },
         # Include these in the table shown for configuration, in order of display
         'table_fields': [
@@ -100,6 +102,7 @@ DEFAULT_NODE_CONFIG = {
             "requires",
             "wants",
             "showmain",
+            "autostart",
         ],
         # Include these in the detailed edit dialog, in order of display
         'edit_fields': [
@@ -114,6 +117,7 @@ DEFAULT_NODE_CONFIG = {
             'showmain',
             'username',
             'password',
+            "autostart",
         ],
         # A default setting when creating a new entry
         'default': {
@@ -128,6 +132,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": False,
             "username": "",
             "password": "",
+            "autostart": False,
         },
         "data": [{
             "name": "System",
@@ -141,6 +146,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": True,
             "username": "",
             "password": "",
+            "autostart": True,
         },{
             "name": "Nimbus",
             "icon": None,
@@ -153,6 +159,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": True,
             "username": "",
             "password": "",
+            "autostart": False,
         },{
             "name": "Cirrus",
             "icon": None,
@@ -165,6 +172,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": True,
             "username": "",
             "password": "",
+            "autostart": False,
         },{
             "name": "Cumulus",
             "icon": None,
@@ -177,6 +185,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": True,
             "username": "",
             "password": "",
+            "autostart": False,
         },{
             "name": "Nas1",
             "icon": None,
@@ -189,6 +198,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": False,
             "username": "",
             "password": "",
+            "autostart": False,
         },{
             "name": "Nas2",
             "icon": None,
@@ -201,6 +211,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": False,
             "username": "",
             "password": "",
+            "autostart": False,
         },{
             "name": "Nas3",
             "icon": None,
@@ -213,6 +224,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": False,
             "username": "",
             "password": "",
+            "autostart": False,
         },{
             "name": "Gatekeeper",
             "icon": None,
@@ -225,6 +237,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": False,
             "username": "",
             "password": "",
+            "autostart": False,
         },{
             "name": "DmzSwitch",
             "icon": None,
@@ -237,6 +250,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": False,
             "username": "",
             "password": "",
+            "autostart": False,
         },{
             "name": "NasSwitch",
             "icon": None,
@@ -249,6 +263,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": False,
             "username": "",
             "password": "",
+            "autostart": False,
         },{
             "name": "ApcSwitch1",
             "icon": None,
@@ -261,6 +276,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": False,
             "username": "",
             "password": "",
+            "autostart": False,
         },{
             "name": "ApcSwitch2",
             "icon": None,
@@ -273,6 +289,7 @@ DEFAULT_NODE_CONFIG = {
             "showmain": False,
             "username": "",
             "password": "",
+            "autostart": False,
         }],
     }
 }
