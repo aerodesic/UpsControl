@@ -4,7 +4,6 @@
 # Main dbus based generator test control
 #
 
-from upsdisplay.vartab import *
 import json
 
 
@@ -23,6 +22,9 @@ import logging
 import os
 import tempfile
 from timeit import default_timer as elapsed_time
+
+from UpsControlConfig import *
+from UpsControlVartab import *
 
 def syslog_json(name, value):
     prefix = "%s:  " % name
@@ -109,7 +111,18 @@ class UpsControl(dbus.service.Object):
     def __init__(self):
         self.__dbus_lock = Lock()
         self.__config_lock = Lock()
-        self.__config = VarTab()
+        self.__config = UpsControlVarTab()
+
+        # Combine the system and node default tables
+        default_config = DEFAULT_SYSTEM_CONFIG
+        default_config['nodes'] = DEFAULT_NODE_CONFIG
+
+        # Read current config file if available
+        self.__config.Load(init=default_config)
+
+        # Overwrite defaults for all of the items in the DEFAULT_SYSTEM_CONFIG
+        for item in DEFAULT_SYSTEM_CONFIG:
+            self.config.SetValue(item, DEFAULT_SYSTEM_CONFIG[item])
 
     def run(self):
 
@@ -158,11 +171,21 @@ class UpsControl(dbus.service.Object):
             self.__config.SetValue(name, json.loads(value))
 
         # Debug
-        self.SendIndicateData("info", "value of '%s' set to %s" % (name, value))
+        # self.SendIndicateData("info", "value of '%s' set to %s" % (name, value))
 
     # Receive data as dbus 'value'
+    # If name is blank, retrieve all of the config
     @dbus.service.method(_BUSNAME, in_signature='s', out_signature='s')
     def GetValue(self, name):
         with self.__config_lock:
             return json.dumps(self.__config.GetValue(name))
 
+    # Set full config
+    def SetConfig(self, config):
+        with self.__config.lock:
+            self.__config.SetAllValus(json.loads(config))
+
+    # Get full config
+    def GetConfig(self):
+        with self.__config.lock:
+            return json.dumps(self.__config.GetAllValues())
