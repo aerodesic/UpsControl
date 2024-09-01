@@ -114,7 +114,7 @@ class UpsControl(dbus.service.Object):
         self.__config = VarTab()
 
         # Put in the user portion of the config
-        default_config = {['nodes': DEFAULT_NODE_CONFIG }
+        default_config = DEFAULT_NODE_CONFIG
 
         # Read current config file if available
         self.__config.Load(init=default_config)
@@ -182,11 +182,11 @@ class UpsControl(dbus.service.Object):
     # Set full config
     @dbus.service.method(_BUSNAME, in_signature='s', out_signature='')
     def SetConfig(self, config):
-        with self.__config.lock:
+        with self.__config_lock:
             self.__config.SetAllValus(json.loads(config))
 
     # Get full config
     @dbus.service.method(_BUSNAME, in_signature='', out_signature='s')
     def GetConfig(self):
-        with self.__config.lock:
+        with self.__config_lock:
             return json.dumps(self.__config.GetAllValues())
