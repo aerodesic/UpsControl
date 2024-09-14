@@ -112,6 +112,7 @@ class UpsControl(dbus.service.Object):
         self.__dbus_lock = Lock()
         self.__config_lock = Lock()
         self.__config = VarTab()
+        self.__activation_queue = Queue()
 
         # Put in the user portion of the config
         default_config = DEFAULT_NODE_CONFIG
@@ -123,7 +124,26 @@ class UpsControl(dbus.service.Object):
         for item in DEFAULT_SYSTEM_CONFIG:
             self.__config.SetValue(item, DEFAULT_SYSTEM_CONFIG[item])
 
+    def __activation_thread(self):
+        running = True
+
+        while running:
+            item = self.__activation_queue.get()
+            if type(item) is dict:
+                if 'activate' in item:
+                    if item['activate']:
+                        syslog.syslog("Activate %s" % item['device'])
+                    else:
+                        syslog.syslog("Deactivate %s" % item['device'])
+            elif item is None:
+                syslog.syslog("activation_thread stopping")
+                running = False
+
     def run(self):
+
+        # Create acivation thread
+        self.__activation_thread_id = Thread(target=self.__activation_thread)
+        self.__activation_thread_id.start()
 
         gobject.threads_init()
         dbus.mainloop.glib.threads_init()
@@ -154,6 +174,9 @@ class UpsControl(dbus.service.Object):
 
         syslog.syslog ("UpsControl Service stopped")
 
+        # shutdown activation thread
+        self.__activation_queue.put(None)
+        self.__activation_thread_id.join()
 
     def SendIndicateData(self, reason, data=None):
         self.IndicateData(reason, json.dumps(data))
@@ -163,8 +186,18 @@ class UpsControl(dbus.service.Object):
     def IndicateData(self, reason, data=None):
         pass
 
+    # Activates a device and all dependencies
+    @dbus.service.method(_BUSNAME, in_signature='s')
+    def Activate(self, device):
+        self.__activation_queue.put({'device': device, 'activate': True})
+
+    # Deactivates a device and all dependencies
+    @dbus.service.method(_BUSNAME, in_signature='s')
+    def Activate(self, device):
+        self.__activation_queue.put({'device': device, 'activate': False})
+
     # Send value as dbus 'value'
-    @dbus.service.method(_BUSNAME, in_signature='ss', out_signature='')
+    @dbus.service.method(_BUSNAME, in_signature='ss')
     def SetValue(self, name, value):
         with self.__config_lock:
             self.__config.SetValue(name, json.loads(value))
@@ -180,7 +213,7 @@ class UpsControl(dbus.service.Object):
             return json.dumps(self.__config.GetValue(name))
 
     # Set full config
-    @dbus.service.method(_BUSNAME, in_signature='s', out_signature='')
+    @dbus.service.method(_BUSNAME, in_signature='s')
     def SetConfig(self, config):
         with self.__config_lock:
             self.__config.SetAllValus(json.loads(config))
